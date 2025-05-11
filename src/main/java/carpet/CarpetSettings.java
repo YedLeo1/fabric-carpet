@@ -1034,4 +1034,19 @@ public class CarpetSettings
             category = {SURVIVAL, FEATURE}
     )
     public static FungusGrowthMode thickFungusGrowth = FungusGrowthMode.FALSE;
+
+    // 自动挖掘
+    @Rule(desc = "Enable bot auto-excavate", category = "BOTS")
+    public static boolean excavateBot = false;
+
+    // 排流体
+    @Rule(desc = "Enable fluid handling with sand", category = "BOTS")
+    public static boolean fluidHandlingBot = false;
+
+    // 隔空放置
+    @Rule(desc = "Enable ghost block placement", category = "BOTS")
+    public static boolean ghostBlockPlacement = false;
+
+    // 三维检测半径
+    public static boolean botSkipProtectedBlocks = false;
 }

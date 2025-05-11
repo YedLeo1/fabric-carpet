@@ -110,6 +110,21 @@ public class PlayerCommand
                                                         )))
                                         )))
                                 ))
+                        ).then(literal("excavate")
+                                .executes(c -> manipulate(c, ap -> {
+                                    EntityPlayerMPFake bot = (EntityPlayerMPFake) getPlayer(c);
+                                    bot.isExcavating = !bot.isExcavating; // 启动挖掘
+                                }))
+                        )
+                        .then(literal("handleFluid")
+                                .executes(c -> manipulate(c, ap ->
+                                        ap.start(EntityPlayerActionPack.ActionType.HANDLE_FLUID, Action.continuous())
+                                ))
+                        )
+                        .then(literal("ghostPlace")
+                                .executes(c -> manipulate(c, ap ->
+                                        ap.start(EntityPlayerActionPack.ActionType.GHOST_PLACE, Action.continuous())
+                                ))
                         )
                 );
         dispatcher.register(command);
@@ -229,7 +244,7 @@ public class PlayerCommand
     {
         if (cantReMove(context)) return 0;
         ServerPlayer player = getPlayer(context);
-        player.kill(player.level());
+        player.kill(player.serverLevel());
         return 1;
     }
 
@@ -342,7 +357,7 @@ public class PlayerCommand
             return 0;
         }
 
-        EntityPlayerMPFake.createShadow(player.getServer(), player);
+        EntityPlayerMPFake.createShadow(player.server, player);
         return 1;
     }
 }

@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import carpet.helpers.bots.BotExcavator;
+import carpet.helpers.bots.BotFluidHandler;
+import carpet.helpers.bots.GhostPlacer;
 import carpet.patches.EntityPlayerMPFake;
 import carpet.script.utils.Tracer;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -49,6 +52,8 @@ public class EntityPlayerActionPack
     private float strafing;
 
     private int itemUseCooldown;
+
+
 
     public EntityPlayerActionPack(ServerPlayer playerIn)
     {
@@ -287,6 +292,8 @@ public class EntityPlayerActionPack
 
     public enum ActionType
     {
+
+
         USE(true)
         {
             @Override
@@ -310,7 +317,7 @@ public class EntityPlayerActionPack
                         case BLOCK:
                         {
                             player.resetLastActionTime();
-                            ServerLevel world = player.level();
+                            ServerLevel world = player.serverLevel();
                             BlockHitResult blockHit = (BlockHitResult) hit;
                             BlockPos pos = blockHit.getBlockPos();
                             Direction side = blockHit.getDirection();
@@ -514,7 +521,43 @@ public class EntityPlayerActionPack
                 player.setItemInHand(InteractionHand.MAIN_HAND, itemStack_1);
                 return false;
             }
+        },
+        EXCAVATE(true) {  // 自动挖掘
+            @Override
+            boolean execute(ServerPlayer player, Action action) {
+                // 实现自动挖掘逻辑
+                return BotExcavator.performExcavate(player);
+            }
+
+            @Override
+            void inactiveTick(ServerPlayer player, Action action) {
+                // 停止挖掘时清理状态
+                BotExcavator.stopExcavate(player);
+            }
+        },
+
+        HANDLE_FLUID(true) {  // 排流体
+            @Override
+            boolean execute(ServerPlayer player, Action action) {
+                return BotFluidHandler.handleFluid(player);
+            }
+        },
+
+        GHOST_PLACE(true) {  // 隔空放置
+            @Override
+            boolean execute(ServerPlayer player, Action action) {
+                return GhostPlacer.performGhostPlacement(player);
+            }
+
+            @Override
+            void inactiveTick(ServerPlayer player, Action action) {
+                // 可选：放置后重置状态
+            }
         };
+
+
+
+
 
         public final boolean preventSpectator;
 
@@ -530,6 +573,8 @@ public class EntityPlayerActionPack
         {
             inactiveTick(player, action);
         }
+
+
     }
 
     public static class Action

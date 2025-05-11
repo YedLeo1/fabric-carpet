@@ -1,6 +1,9 @@
 package carpet.patches;
 
 import carpet.CarpetSettings;
+import carpet.helpers.bots.BotExcavator;
+import carpet.helpers.bots.BotFluidHandler;
+import carpet.helpers.bots.GhostPlacer;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
@@ -48,6 +51,8 @@ public class EntityPlayerMPFake extends ServerPlayer
 
     public Runnable fixStartingPosition = () -> {};
     public boolean isAShadow;
+
+    public boolean isExcavating = false; // 挖掘状态
 
     // Returns true if it was successful, false if couldn't spawn due to the player not existing in Mojang servers
     public static boolean createFake(String username, MinecraftServer server, Vec3 pos, double yaw, double pitch, ResourceKey<Level> dimensionId, GameType gamemode, boolean flying)
@@ -117,7 +122,7 @@ public class EntityPlayerMPFake extends ServerPlayer
     {
         player.getServer().getPlayerList().remove(player);
         player.connection.disconnect(Component.translatable("multiplayer.disconnect.duplicate_login"));
-        ServerLevel worldIn = player.level();//.getWorld(player.dimension);
+        ServerLevel worldIn = player.serverLevel();//.getWorld(player.dimension);
         GameProfile gameprofile = player.getGameProfile();
         EntityPlayerMPFake playerShadow = new EntityPlayerMPFake(server, worldIn, gameprofile, player.clientInformation(), true);
         playerShadow.setChatSession(player.getChatSession());
@@ -174,7 +179,7 @@ public class EntityPlayerMPFake extends ServerPlayer
         if (reason.getContents() instanceof TranslatableContents text && text.getKey().equals("multiplayer.disconnect.duplicate_login")) {
             this.connection.onDisconnect(new DisconnectionDetails(reason));
         } else {
-            this.getServer().schedule(new TickTask(this.getServer().getTickCount(), () -> {
+            this.server.schedule(new TickTask(this.server.getTickCount(), () -> {
                 this.connection.onDisconnect(new DisconnectionDetails(reason));
             }));
         }
@@ -186,7 +191,7 @@ public class EntityPlayerMPFake extends ServerPlayer
         if (this.getServer().getTickCount() % 10 == 0)
         {
             this.connection.resetPosition();
-            this.level().getChunkSource().move(this);
+            this.serverLevel().getChunkSource().move(this);
         }
         try
         {
@@ -198,7 +203,10 @@ public class EntityPlayerMPFake extends ServerPlayer
             // happens with that paper port thingy - not sure what that would fix, but hey
             // the game not gonna crash violently.
         }
-
+        super.tick();
+        if (CarpetSettings.excavateBot && this.isExcavating) {
+            BotExcavator.performExcavate(this);
+        }
 
     }
 
@@ -253,4 +261,5 @@ public class EntityPlayerMPFake extends ServerPlayer
         }
         return connection.player;
     }
+
 }
